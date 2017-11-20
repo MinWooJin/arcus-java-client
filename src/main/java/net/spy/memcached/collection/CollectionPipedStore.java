@@ -115,7 +115,7 @@ public abstract class CollectionPipedStore<T> extends CollectionObject {
 
 			// flip the buffer
 			bb.flip();
-			
+
 			return bb;
 		}
 
@@ -186,7 +186,7 @@ public abstract class CollectionPipedStore<T> extends CollectionObject {
 			}
 			// flip the buffer
 			bb.flip();
-			
+
 			return bb;
 		}
 

@@ -97,6 +97,12 @@ public class CollectionStoreOperationImpl extends OperationImpl
 		}
 
 		/* ENABLE_REPLICATION end */
+		/* ENABLE_MIGRATION if */
+		if (line.startsWith("NOT_MY_KEY ")) {
+			receivedMigrateOperations(line, true);
+			return;
+		}
+		/* ENABLE_MIGRATION end */
 		getCallback().receivedStatus(
 				matchStatus(line, STORED, CREATED_STORED, NOT_FOUND, ELEMENT_EXISTS,
 						OVERFLOWED, OUT_OF_RANGE, TYPE_MISMATCH, BKEY_MISMATCH));

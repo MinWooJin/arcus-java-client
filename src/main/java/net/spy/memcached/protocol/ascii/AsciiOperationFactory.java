@@ -86,6 +86,9 @@ import net.spy.memcached.ops.StatsOperation;
 import net.spy.memcached.ops.StoreOperation;
 import net.spy.memcached.ops.StoreType;
 import net.spy.memcached.ops.VersionOperation;
+/* ENABLE_MIGRATION if */
+import net.spy.memcached.ops.ClusterOperation;
+/* ENABLE_MIGRATION end */
 
 /**
  * Operation factory for the ascii protocol.
@@ -115,6 +118,16 @@ public class AsciiOperationFactory extends BaseOperationFactory {
 	public GetOperation mget(Collection<String> keys, GetOperation.Callback cb) {
 		return new MGetOperationImpl(keys, cb);
 	}
+
+	/* ENABLE_MIGRATION if */
+	public GetOperation get(Collection<String> keys, GetOperation.Callback cb, Operation parentOp) {
+		return new GetOperationImpl(keys, cb, parentOp);
+	}
+
+	public GetOperation mget(Collection<String> keys, GetOperation.Callback cb, Operation parentOp) {
+		return new MGetOperationImpl(keys, cb, parentOp);
+	}
+	/* ENABLE_MIGRATION end */
 
 	public MutatorOperation mutate(Mutator m, String key, int by,
 			long def, int exp, OperationCallback cb) {
@@ -274,6 +287,13 @@ public class AsciiOperationFactory extends BaseOperationFactory {
 		return new BTreeGetBulkOperationImpl(getBulk, cb);
 	}
 
+	/* ENABLE_MIGRATION if */
+	public BTreeGetBulkOperation bopGetBulk(BTreeGetBulk<?> getBulk,
+			BTreeGetBulkOperation.Callback<?> cb, Operation parentOp) {
+		return new BTreeGetBulkOperationImpl(getBulk, cb, parentOp);
+	}
+	/* ENABLE_MIGRATION end */
+
 	@Override
 	public CollectionMutateOperation collectionMutate(String key,
 			String subkey, CollectionMutate collectionMutate,
@@ -304,5 +324,8 @@ public class AsciiOperationFactory extends BaseOperationFactory {
 			BTreeStoreAndGet<?> get, byte[] dataToStore, OperationCallback cb) {
 		return new BTreeStoreAndGetOperationImpl(key, get, dataToStore, cb);
 	}
-	
+
+	public ClusterOperation cluster(long version, OperationCallback cb) {
+		return new ClusterOperationImpl(version, cb);
+	}
 }

@@ -41,6 +41,12 @@ final class FlushOperationImpl extends OperationImpl
 		}
 
 		/* ENABLE_REPLICATION end */
+		/* ENABLE_MIGRATION if */
+		if (line.startsWith("NOT_MY_KEY")) {
+			receivedMigrateOperations(line, true);
+			return;
+		}
+		/* ENABLE_MIGRATION end */
 		getCallback().receivedStatus(matchStatus(line, OK));
 		transitionState(OperationState.COMPLETE);
 	}

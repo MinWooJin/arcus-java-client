@@ -18,6 +18,7 @@ package net.spy.memcached.collection;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import net.spy.memcached.util.BTreeUtil;
 import net.spy.memcached.collection.SMGetMode;
@@ -40,6 +41,9 @@ public class BTreeSMGetWithLongTypeBkey<T> implements BTreeSMGet<T> {
 	protected Map<Integer, T> map;
 
 	protected boolean reverse;
+	/* ENABLE_MIGRATION if */
+	protected boolean byteBkey;
+	/* ENABLE_MIGRATION end */
 
 	public String key;
 	public int flag;
@@ -61,8 +65,24 @@ public class BTreeSMGetWithLongTypeBkey<T> implements BTreeSMGet<T> {
 		this.count = count;
 		this.smgetMode = smgetMode;
 		this.reverse = (from > to);
+		/* ENABLE_MIGRATION if */
+		this.byteBkey = false;
+		/* ENABLE_MIGRATION end */
 	}
-	
+
+	/* ENABLE_MIGRATION if */
+	public BTreeSMGetWithLongTypeBkey(List<String> keyList, String range,
+			ElementFlagFilter eFlagFilter, int count, SMGetMode smgetMode, boolean reverse) {
+		this.keyList = keyList;
+		this.range = range;
+		this.eFlagFilter = eFlagFilter;
+		this.count = count;
+		this.smgetMode = smgetMode;
+		this.reverse = reverse;
+		this.byteBkey = false;
+	}
+	/* ENABLE_MIGRATION end */
+
 	public String getSpaceSeparatedKeys() {
 		if (spaceSeparatedKeys != null) {
 			return spaceSeparatedKeys;
@@ -172,4 +192,18 @@ public class BTreeSMGetWithLongTypeBkey<T> implements BTreeSMGet<T> {
 			this.dataLength = Integer.parseInt(splited[3]);
 		}
 	}
+
+	/* ENABLE_MIGRATION if */
+	public Map<String, Object> getArgument() {
+		Map<String, Object> arguments = new HashMap<String, Object>();
+		arguments.put("byteBkey", byteBkey);
+		arguments.put("range", range);
+		arguments.put("eFlagFilter", eFlagFilter);
+		arguments.put("count", count);
+		arguments.put("smgetMode", smgetMode);
+		arguments.put("reverse", reverse);
+
+		return arguments;
+	}
+	/* ENABLE_MIGRATION end */
 }

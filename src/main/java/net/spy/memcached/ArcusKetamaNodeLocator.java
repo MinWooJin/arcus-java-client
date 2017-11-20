@@ -21,18 +21,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.NavigableSet;
+import java.util.NavigableMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import net.spy.memcached.compat.SpyObject;
+import net.spy.memcached.internal.MigrationMode;
 import net.spy.memcached.util.ArcusKetamaNodeLocatorConfiguration;
 
 public class ArcusKetamaNodeLocator extends SpyObject implements NodeLocator {
 
 	TreeMap<Long, MemcachedNode> ketamaNodes;
 	Collection<MemcachedNode> allNodes;
+
+	/* ENABLE_MIGRATION if */
+	private MigrationMode migrationMode = MigrationMode.Init;
+
+	TreeMap<Long, MemcachedNode> migrationKetamaNodes;
+	Collection<MemcachedNode> allMigrationNodes;
+	int migrationExecutionRound = 0;
+	/* ENABLE_MIGRATION end */
 
 	HashAlgorithm hashAlg;
 	ArcusKetamaNodeLocatorConfiguration config;
@@ -50,6 +62,11 @@ public class ArcusKetamaNodeLocator extends SpyObject implements NodeLocator {
 		hashAlg = alg;
 		ketamaNodes = new TreeMap<Long, MemcachedNode>();
 		config = conf;
+
+		/* ENABLE_MIGRATION if */
+		migrationKetamaNodes = new TreeMap<Long, MemcachedNode>();
+		allMigrationNodes = new ArrayList<MemcachedNode>();
+		/* ENABLE_MIGRATION end */
 
 		int numReps = config.getNodeRepetitions();
 		for (MemcachedNode node : nodes) {
@@ -79,6 +96,12 @@ public class ArcusKetamaNodeLocator extends SpyObject implements NodeLocator {
 	public Collection<MemcachedNode> getAll() {
 		return allNodes;
 	}
+
+	/* ENABLE_MIGRATION if */
+	public Collection<MemcachedNode> getAllMigrationNodes() {
+		return allMigrationNodes;
+	}
+	/* ENABLE_MIGRATION end */
 
 	public MemcachedNode getPrimary(final String k) {
 		MemcachedNode rv = getNodeForKey(hashAlg.hash(k));
@@ -198,6 +221,29 @@ public class ArcusKetamaNodeLocator extends SpyObject implements NodeLocator {
 						| (digest[h * 4] & 0xFF);
 
 				if (remove) {
+					/* ENABLE_MIGRATION if */
+					/* auto complete */
+					if (!migrationKetamaNodes.isEmpty()) {
+						Long prev_k = ketamaNodes.lowerKey(k);
+						NavigableMap<Long, MemcachedNode> sub;
+						if (prev_k == null) {
+							sub = migrationKetamaNodes.headMap(k, false);
+						} else {
+							sub = migrationKetamaNodes.subMap(prev_k, false, k, false);
+						}
+						if (!sub.isEmpty()) {
+							Map<Long, MemcachedNode> temp = new TreeMap<Long, MemcachedNode>();
+							for (Map.Entry<Long, MemcachedNode> entry : sub.entrySet()) {
+								temp.put(entry.getKey(), entry.getValue());
+							}
+							for (Map.Entry<Long, MemcachedNode> entry : temp.entrySet()) {
+								ketamaNodes.put(entry.getKey(), entry.getValue());
+								migrationKetamaNodes.remove(entry.getKey());
+							}
+						}
+					}
+
+					/* ENABLE_MIGRATION end */
 					ketamaNodes.remove(k);
 				} else {
 					ketamaNodes.put(k, node);
@@ -209,6 +255,84 @@ public class ArcusKetamaNodeLocator extends SpyObject implements NodeLocator {
 			config.removeNode(node);
 		}
 	}
+
+	/* ENABLE_MIGRATION if */
+	public void cleanupMigration() {
+		/* FIXME :: it is complete?? */
+		lock.lock();
+		allMigrationNodes.clear();
+		migrationKetamaNodes.clear();
+		lock.unlock();
+		getLogger().info("Cleanup Migration");
+	}
+
+	public MigrationMode getMigrationMode() {
+		return migrationMode;
+	}
+
+	private void updateMigrationHash(MemcachedNode node, boolean remove) {
+		// Ketama does some special work with md5 where it reuses chunks.
+		for (int i = 0; i < config.getNodeRepetitions() / 4; i++) {
+
+			byte[] digest = HashAlgorithm.computeMd5(config.getKeyForNode(node, i));
+			for (int h = 0; h < 4; h++) {
+				Long k = ((long) (digest[3 + h * 4] & 0xFF) << 24)
+						| ((long) (digest[2 + h * 4] & 0xFF) << 16)
+						| ((long) (digest[1 + h * 4] & 0xFF) << 8)
+						| (digest[h * 4] & 0xFF);
+
+				if (remove) {
+					ketamaNodes.remove(k);
+					migrationKetamaNodes.remove(k);
+				} else {
+					migrationKetamaNodes.put(k, node);
+				}
+			}
+		}
+	}
+
+	public void updateMigration(Collection<MemcachedNode> toAttach,
+								Collection<MemcachedNode> toDelete,
+								MigrationMode mode) {
+		lock.lock();
+		try {
+			// Add memcached nodes.
+			for (MemcachedNode node : toAttach) {
+				if (node == null)
+					continue;
+				allMigrationNodes.add(node);
+				if (mode == MigrationMode.Join) {
+					updateMigrationHash(node, false);
+				}
+			}
+
+			// Remove memcached nodes.
+			for (MemcachedNode node : toDelete) {
+				allMigrationNodes.remove(node);
+				if (!allNodes.contains(node)) {
+					updateMigrationHash(node, true);
+					try {
+						node.getSk().attach(null);
+						node.shutdown();
+					} catch (IOException e) {
+						getLogger().error(
+								"Failed to shutdown the node : " + node.toString());
+						node.setSk(null);
+					}
+				}
+			}
+		} catch (RuntimeException e) {
+			throw e;
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public void reflectMigratedHash(List<String> migraitons) {
+
+
+	}
+	/* ENABLE_MIGRATION end */
 
 	class KetamaIterator implements Iterator<MemcachedNode> {
 

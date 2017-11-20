@@ -269,4 +269,11 @@ public interface MemcachedNode {
 
 	int moveOperations(final MemcachedNode toNode);
 	/* ENABLE_REPLICATION end */
+	/* ENABLE_MIGRATION if */
+	void makeMoveOperation(Operation op);
+
+	void moveOperation(Operation op, final MemcachedNode toNode);
+
+	void addMovesOp(Operation op);
+	/* ENABLE_MIGRATION end */
 }

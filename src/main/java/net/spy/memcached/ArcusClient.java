@@ -3834,6 +3834,79 @@ public class ArcusClient extends FrontCacheMemcachedClient implements ArcusClien
 	<T> CollectionFuture<Map<T, Boolean>> asyncSetPipedExist(
 			final String key, final SetPipedExist<T> exist) {
 
+		/* ENABLE_MIGRATION if */
+		if (exist.getItemCount() == 0) {
+			throw new IllegalArgumentException(
+					"The number of piped operations must be larger than 0.");
+		}
+		if (exist.getItemCount() > CollectionPipedStore.MAX_PIPED_ITEM_COUNT) {
+			throw new IllegalArgumentException(
+					"The number of piped operations must not exceed a maximum of "
+							+ CollectionPipedStore.MAX_PIPED_ITEM_COUNT + ".");
+		}
+
+		final CountDownLatch latch = new CountDownLatch(1);
+		final CollectionFuture<Map<T, Boolean>> rv = new CollectionFuture<Map<T, Boolean>>(
+				latch, operationTimeout);
+
+		Operation op = opFact.collectionPipedExist(key, exist,
+				new CollectionPipedExistOperation.Callback() {
+
+					Map<T, Boolean> result = new HashMap<T, Boolean>();
+
+					boolean hasAnError = false;
+
+					public void receivedStatus(OperationStatus status) {
+						if (hasAnError)
+							return;
+
+						CollectionOperationStatus cstatus;
+						if (status instanceof CollectionOperationStatus) {
+							cstatus = (CollectionOperationStatus) status;
+						} else {
+							getLogger().warn("Unhandled state: " + status);
+							cstatus = new CollectionOperationStatus(status);
+						}
+						rv.set(result, cstatus);
+					}
+
+					public void complete() {
+						latch.countDown();
+					}
+
+					public void gotStatus(Integer index, OperationStatus status) {
+						CollectionOperationStatus cstatus;
+						if (status instanceof CollectionOperationStatus) {
+							cstatus = (CollectionOperationStatus) status;
+						} else {
+							cstatus = new CollectionOperationStatus(status);
+						}
+
+						switch (cstatus.getResponse()) {
+							case EXIST:
+							case NOT_EXIST:
+								result.put(exist.getValues().get(index),
+										(CollectionResponse.EXIST.equals(cstatus
+												.getResponse())));
+								break;
+							case UNREADABLE:
+							case TYPE_MISMATCH:
+							case NOT_FOUND:
+								hasAnError = true;
+								rv.set(new HashMap<T, Boolean>(0),
+										(CollectionOperationStatus) status);
+								break;
+							default:
+								getLogger().warn("Unhandled state: " + status);
+						}
+					}
+				});
+
+		rv.setOperation(op);
+		addOp(key, op);
+		return rv;
+		/* else */
+		/*
 		if (exist.getItemCount() == 0) {
 			throw new IllegalArgumentException(
 					"The number of piped operations must be larger than 0.");
@@ -3904,6 +3977,8 @@ public class ArcusClient extends FrontCacheMemcachedClient implements ArcusClien
 		rv.setOperation(op);
 		addOp(key, op);
 		return rv;
+		*/
+		/* ENABLE_MIGRATION end */
 	}
 
 	/*
