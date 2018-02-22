@@ -3,8 +3,14 @@ set -e
 CWD=$(pwd)
 
 TARGET_SERVER_BR="master"
+TARGET_CLIENT_BR="master"
+
 if [ ! -z "$1" ]; then
-  TARGET_SERVER_BR=$1
+  TARGET_CLIENT_BR=$1
+fi
+
+if [ "$TARGET_CLIENT_BR" != "master" ]; then
+  TARGET_SERVER_BR="develop"
 fi
 
 checkBranch() {

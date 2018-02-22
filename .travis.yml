@@ -7,12 +7,12 @@ cache:
 
 before_install:
   - sudo apt-get install -qq build-essential autoconf automake libtool libcppunit-dev python-setuptools python-dev ant
-  - bash install-arcus-memcached.sh develop
+  - bash TARGET_CLIENT_BRANCH=`git name-rev --name-only HEAD`
+  - bash install-arcus-memcached.sh $TARGET_CLIENT_BRANCH
 
 script:
   - mvn test -DUSE_ZK=false && mvn test -DUSE_ZK=true
 
 notifications:
   email:
-    - wooseok.son@jam2in.com
-    - whchoi83@jam2in.com
+    - alsdn653@jam2in.com
