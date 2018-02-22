@@ -13,8 +13,6 @@ if [ "$TARGET_CLIENT_BR" != "master" ]; then
   TARGET_SERVER_BR="develop"
 fi
 
-echo $TARGET_SERVER_BR
-
 checkBranch() {
   git remote update
   UPSTREAM=${1:-'@{u}'}

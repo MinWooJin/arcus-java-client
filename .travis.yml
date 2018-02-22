@@ -11,7 +11,7 @@ before_install:
   - bash install-arcus-memcached.sh $TARGET_CLIENT_BRANCH
 
 script:
-  - mvn test -DUSE_ZK=false && mvn test -DUSE_ZK=true
+  - sudo mvn test -DUSE_ZK=false && mvn test -DUSE_ZK=true
 
 notifications:
   email:
