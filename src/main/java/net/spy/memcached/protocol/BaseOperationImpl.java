@@ -133,7 +133,8 @@ public abstract class BaseOperationImpl extends SpyObject {
 
 	/* ENABLE_MIGRATION if */
 	protected final void receivedMigrateOperations(String cause, boolean changeState) {
-		getLogger().debug("%s message received by %s operation from %s", cause, this, handlingNode);
+		/* FIXME::MWJIN_DEBUG */
+		getLogger().info("%s message received by %s operation from %s", cause, this, handlingNode);
 		if (mgResponse == null) {
 			mgResponse = new ArrayList<String>();
 		}
@@ -179,7 +180,8 @@ public abstract class BaseOperationImpl extends SpyObject {
 		if(state == OperationState.COMPLETE) {
 		/* ENABLE_REPLICATION if */
 			if (moved)
-				getLogger().debug("Operation move completed : %s at %s", this, getHandlingNode());
+				/* FIXME::MWJIN_DEBUG */
+				getLogger().info("Operation move completed : %s at %s", this, getHandlingNode());
 		/* ENABLE_REPLICATION end */
 			callback.complete();
 		}

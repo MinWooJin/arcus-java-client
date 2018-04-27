@@ -964,15 +964,17 @@ public final class MemcachedConnection extends SpyObject {
 		String key;
 		String ownerName;
 
-		if (operation.getMgResponseSize() > 1) {
+		APIType opType = operation.getAPIType();
+		if (opType == APIType.GET || opType == APIType.MGET || opType == APIType.BOP_GET) {
 			/* multiple key operation */
-			assert(operation.getAPIType() == APIType.GET || operation.getAPIType() == APIType.MGET || operation.getAPIType() == APIType.BOP_GET);
 			Map<MemcachedNode, List<Collection<String>>> chunks = new HashMap<MemcachedNode, List<Collection<String>>>();
 			Map<MemcachedNode, Integer> chunkCount = new HashMap<MemcachedNode, Integer>();
 
 			for(int i = 0; i < operation.getMgResponseSize(); i++) {
 				/* parsing migration response string */
 				splitedResponse = operation.getMgResponse(i).split(" ");
+				assert splitedResponse.length == 3;
+
 				key = splitedResponse[1];
 				ownerName = splitedResponse[2];
 
@@ -1491,7 +1493,8 @@ public final class MemcachedConnection extends SpyObject {
 				/* ENABLE_REPLICATION end */
 				/* ENABLE_MIGRATION if */
 				else if (currentOp.getState() == OperationState.MIGRATING) {
-					getLogger().debug(
+					/* FIXME::MWJIN_DEBUG */
+					getLogger().info(
 							"Migrating read op: %s and giving the next %d bytes",
 							currentOp, rbuf.remaining());
 					Operation op=qa.removeCurrentReadOp();
