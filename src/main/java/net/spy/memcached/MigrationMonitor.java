@@ -105,10 +105,12 @@ public class MigrationMonitor extends SpyObject {
 			public void processResult(int rc, String s, Object o, List<String> list) {
 				Code code = Code.get(rc);
 				if (code == Code.OK) {
-					listener.commandAlterNodeChange(list);
+					listener.commandAlterNodeChange(list, mode);
 				} else if (code == Code.NONODE) {
-					initMigration();
-					listener.initialMigrationNodeChange();
+					if (mode != MigrationMode.Init) {
+						mode = MigrationMode.Init;
+						listener.initialMigrationNodeChange(mode);
+					}
 				} else {
 					handleCallBackError(code);
 				}
@@ -128,14 +130,18 @@ public class MigrationMonitor extends SpyObject {
 				if (code == Code.OK) {
 					listener.commandMigrationsZNodeChange(list);
 				} else if (code == Code.NONODE) {
-					initMigration();
-					listener.initialMigrationNodeChange();
+					if (mode != MigrationMode.Init) {
+						mode = MigrationMode.Init;
+						listener.initialMigrationNodeChange(mode);
+					}
 				} else {
 					handleCallBackError(code);
 				}
 			}
 		};
-		initMigration();
+		getLogger().info("Initializing the MigrationMonitor");
+		mode = MigrationMode.Init;
+		asyncGetMigrationStatus();
 	}
 
 	private void handleCallBackError(Code code) {
@@ -155,12 +161,6 @@ public class MigrationMonitor extends SpyObject {
 				getLogger().warn("Ignoring an unexpected event from the Arcus admin. code=" + code + ", " + getInfo());
 				break;
 		}
-	}
-
-	public void initMigration() {
-		getLogger().info("Initializing the MigrationMonitor");
-		mode = MigrationMode.Init;
-		asyncGetMigrationStatus();
 	}
 
 	private void asyncGetMigrationStatus() {
@@ -214,14 +214,14 @@ public class MigrationMonitor extends SpyObject {
 					assert clusterVersion != -1;
 
 					mode = MigrationMode.Init;
-					listener.initialMigrationNodeChange();
+					listener.initialMigrationNodeChange(mode);
 					listener.commandMigrationVersionChange(clusterVersion);
 				}
 			}
 		} else {
 			if (mode != MigrationMode.Init) {
 				mode = MigrationMode.Init;
-				listener.initialMigrationNodeChange();
+				listener.initialMigrationNodeChange(mode);
 			}
 		}
 	}
@@ -276,11 +276,11 @@ public class MigrationMonitor extends SpyObject {
 
 	public interface MigrationMonitorListener {
 
-		void commandAlterNodeChange(List<String> children);
+		void commandAlterNodeChange(List<String> children, MigrationMode mode);
 
 		void commandMigrationsZNodeChange(List<String> migrations);
 
-		void initialMigrationNodeChange();
+		void initialMigrationNodeChange(MigrationMode mode);
 
 		void commandMigrationVersionChange(long version);
 

@@ -511,7 +511,6 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 
 	/* ENABLE_MIGRATION if */
 	public void cleanupMigration() {
-		migrationMode = MigrationMode.Init;
 		if (!allExistGroups.isEmpty()) {
 			allExistGroups.clear();
 		}
@@ -544,6 +543,7 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 		migrationExecutionRound = 0;
 		prevExistNodeName = null;
 		prevExistHSliceIndex = -1;
+		migrationMode = MigrationMode.Init;
 
 		getLogger().info("Cleanup Migration");
 	}
