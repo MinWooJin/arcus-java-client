@@ -434,7 +434,7 @@ public class CacheManager extends SpyThread implements Watcher,
 	}
 
 	/* ENABLE_MIGRATION if */
-	public void commandAlterNodeChange(List<String> migrationList, MigrationMode type) {
+	public void commandAlterNodeChange(List<String> migrationList, MigrationMode mode) {
 		if (!migrationList.equals(prevMigrationList)) {
 			getLogger().warn("Migration Node has been changed : From = " + prevMigrationList
 					+ " , To = " + migrationList + ", " + "[serviceCode = " + serviceCode
@@ -442,11 +442,13 @@ public class CacheManager extends SpyThread implements Watcher,
 			prevMigrationList = migrationList;
 			String addrs = convertAddress(migrationList);
 
-			MigrationMap mgMap = new MigrationMap(addrs.length() > 0 ? addrs : "", type);
-			for (ArcusClient ac : client) {
-				MemcachedConnection conn = ac.getMemcachedConnection();
-				conn.putZnodeQueue(ZnodeType.MigrationList, mgMap);
-				conn.getSelector().wakeup();
+			if (addrs.length() > 0 || mode == MigrationMode.Init) {
+				MigrationMap mgMap = new MigrationMap(addrs, mode);
+				for (ArcusClient ac : client) {
+					MemcachedConnection conn = ac.getMemcachedConnection();
+					conn.putZnodeQueue(ZnodeType.MigrationList, mgMap);
+					conn.getSelector().wakeup();
+				}
 			}
 		}
 	}
