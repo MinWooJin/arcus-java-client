@@ -516,6 +516,9 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 			allExistGroups.clear();
 		}
 		if (!allAlterGroups.isEmpty()) {
+			/* FIXME::MWJIN_DEBUG */
+			getLogger().info("allAlterGroups = "+allAlterGroups);
+
 			allAlterGroups.clear();
 		}
 		if (!allFailedExistGroups.isEmpty()) {
@@ -756,6 +759,7 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 		if (reflectMode == MigrationMode.Join) {
 			Long from = existHPointList.get(existMoveSlice);
 			Long to = alterHPointList.get(alterMoveSlice);
+
 			do {
 				targ = ketamaGroups.lowerEntry(from);
 				if (targ == null) {
@@ -807,11 +811,15 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 				for (Map.Entry<Long, MemcachedReplicaGroup> entry : sub.entrySet()) {
 					temp.put(entry.getKey(), entry.getValue());
 				}
-				if (from.equals(ketamaGroups.lastKey())) {
+				long lastKey = ketamaGroups.lastKey();
+				if (from == lastKey) {
 					sub = ketamaGroups.subMap(from, true, from+1, false);
 				} else {
-					assert from < ketamaGroups.lastKey();
-					sub = ketamaGroups.subMap(from, true, ketamaGroups.lastKey(), true);
+					assert from < lastKey;
+					// FIXME::MWJIN_DEBUG
+					getLogger().info("MWJIN_DEBUG: alter_index = %d, from = %u, last = %u", alterMoveSlice, from, ketamaGroups.lastKey());
+
+					sub = ketamaGroups.subMap(from, true, lastKey, true);
 				}
 				for (Map.Entry<Long, MemcachedReplicaGroup> entry : sub.entrySet()) {
 					temp.put(entry.getKey(), entry.getValue());
@@ -856,8 +864,9 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 						temp.put(entry.getKey(), entry.getValue());
 					}
 				}
-				if (from < migrationKetamaGroups.lastKey()) {
-					sub = migrationKetamaGroups.subMap(from, false, migrationKetamaGroups.lastKey(), true);
+				long lastKey = migrationKetamaGroups.lastKey();
+				if (from < lastKey) {
+					sub = migrationKetamaGroups.subMap(from, false, lastKey, true);
 					for (Map.Entry<Long, MemcachedReplicaGroup> entry : sub.entrySet()) {
 						temp.put(entry.getKey(), entry.getValue());
 					}
@@ -896,9 +905,10 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 						temp.put(entry.getKey(), entry.getValue());
 					}
 				}
-				if (!from.equals(ketamaGroups.lastKey())) {
-					assert from < ketamaGroups.lastKey();
-					sub = ketamaGroups.subMap(from, false, ketamaGroups.lastKey(), true);
+				long lastKey = ketamaGroups.lastKey();
+				if (from != lastKey) {
+					assert from < lastKey;
+					sub = ketamaGroups.subMap(from, false, lastKey, true);
 					for (Map.Entry<Long, MemcachedReplicaGroup> entry : sub.entrySet()) {
 						temp.put(entry.getKey(), entry.getValue());
 					}
