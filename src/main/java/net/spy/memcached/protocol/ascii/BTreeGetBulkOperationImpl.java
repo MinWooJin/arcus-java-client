@@ -101,7 +101,9 @@ public class BTreeGetBulkOperationImpl extends OperationImpl implements
 		/* ENABLE_MIGRATION if */
 		if (line.startsWith("VALUE ")) {
 			readKey(line);
-			setReadType(OperationReadType.DATA);
+			if (!migrating) {
+				setReadType(OperationReadType.DATA);
+			}
 		} else {
 			if (migrating) {
 				/**
