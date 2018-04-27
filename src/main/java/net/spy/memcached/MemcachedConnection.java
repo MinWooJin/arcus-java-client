@@ -960,10 +960,6 @@ public final class MemcachedConnection extends SpyObject {
 		 * SINGLE KEY   : NOT_MY_KEY <join | leave> <owner name> <owner hpoint>
 		 * MULTIPLE KEY : NOT_MY_KEY <key> <join | leave> <owner name> <owner hpoint>
 		 */
-		String[] splitedResponse;
-		String key;
-		String ownerName;
-
 		APIType opType = operation.getAPIType();
 		if (opType == APIType.GET || opType == APIType.MGET || opType == APIType.BOP_GET) {
 			/* multiple key operation */
@@ -972,11 +968,14 @@ public final class MemcachedConnection extends SpyObject {
 
 			for(int i = 0; i < operation.getMgResponseSize(); i++) {
 				/* parsing migration response string */
-				splitedResponse = operation.getMgResponse(i).split(" ");
+				String[] splitedResponse = operation.getMgResponse(i).split(" ");
+				/* FIXME::MWJIN_DEBUG */
+				getLogger().info("GetOperation splitedResponse.size = "+splitedResponse.length);
+
 				assert splitedResponse.length == 3;
 
-				key = splitedResponse[1];
-				ownerName = splitedResponse[2];
+				String key = splitedResponse[1];
+				String ownerName = splitedResponse[2];
 
 				if (arcusReplEnabled) {
 					MemcachedReplicaGroup group = getOwnerGroup(node, ownerName);
@@ -1052,8 +1051,8 @@ public final class MemcachedConnection extends SpyObject {
 			operation.setMigratingCount(moveOperationCount);
 		} else {
 			/* single key operation */
-			splitedResponse = operation.getMgResponse(0).split(" ");
-			ownerName = splitedResponse[1];
+			String[] splitedResponse = operation.getMgResponse(0).split(" ");
+			String ownerName = splitedResponse[1];
 
 			if (arcusReplEnabled) {
 				MemcachedReplicaGroup group = getOwnerGroup(node, ownerName);
