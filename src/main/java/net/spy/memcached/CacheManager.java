@@ -442,7 +442,7 @@ public class CacheManager extends SpyThread implements Watcher,
 			prevMigrationList = migrationList;
 			String addrs = convertAddress(migrationList);
 
-			MigrationMap mgMap = new MigrationMap(addrs, type);
+			MigrationMap mgMap = new MigrationMap(addrs.length() > 0 ? addrs : "", type);
 			for (ArcusClient ac : client) {
 				MemcachedConnection conn = ac.getMemcachedConnection();
 				conn.putZnodeQueue(ZnodeType.MigrationList, mgMap);
