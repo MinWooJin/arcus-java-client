@@ -53,6 +53,8 @@ public class MigrationMonitor extends SpyObject {
 
 	private MigrationMode mode;
 
+	private MigrationMode alterType;
+
 	/**
 	 * Constructor
 	 *
@@ -105,7 +107,7 @@ public class MigrationMonitor extends SpyObject {
 			public void processResult(int rc, String s, Object o, List<String> list) {
 				Code code = Code.get(rc);
 				if (code == Code.OK) {
-					listener.commandAlterNodeChange(list, mode);
+					listener.commandAlterNodeChange(list, alterType);
 				} else if (code == Code.NONODE) {
 					if (mode != MigrationMode.Init) {
 						mode = MigrationMode.Init;
@@ -194,10 +196,12 @@ public class MigrationMonitor extends SpyObject {
 			if (prepared) {
 				if (children.contains(joiningListPath)) {
 					mode = MigrationMode.Join;
+					alterType = MigrationMode.Join;
 					asyncGetAlterList();
 					asyncGetMigrationsList();
 				} else if (children.contains(leavingListPath)) {
 					mode = MigrationMode.Leave;
+					alterType = MigrationMode.Leave;
 					asyncGetAlterList();
 					asyncGetMigrationsList();
 				} else {
@@ -227,7 +231,7 @@ public class MigrationMonitor extends SpyObject {
 	}
 
 	private void asyncGetAlterList() {
-		switch (mode) {
+		switch (alterType) {
 			case Join:
 				if(alterListWatcher != null) {
 					zk.getChildren(cloudStatZpath + serviceCode + "/" + joiningListPath, alterListWatcher, alterListWatcher, null);
@@ -237,8 +241,6 @@ public class MigrationMonitor extends SpyObject {
 				if(alterListWatcher != null) {
 					zk.getChildren(cloudStatZpath + serviceCode + "/" + leavingListPath, alterListWatcher, alterListWatcher, null);
 				}
-				break;
-			case Init:
 				break;
 			default:
 				getLogger().error("Unexpected Migration Mode : " + mode);
@@ -276,7 +278,7 @@ public class MigrationMonitor extends SpyObject {
 
 	public interface MigrationMonitorListener {
 
-		void commandAlterNodeChange(List<String> children, MigrationMode mode);
+		void commandAlterNodeChange(List<String> children, MigrationMode type);
 
 		void commandMigrationsZNodeChange(List<String> migrations);
 
