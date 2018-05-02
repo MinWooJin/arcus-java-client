@@ -971,6 +971,9 @@ public final class MemcachedConnection extends SpyObject {
 				String[] splitedResponse = operation.getMgResponse(i).split(" ");
 				/* FIXME::MWJIN_DEBUG */
 				getLogger().info("GetOperation splitedResponse.size = "+splitedResponse.length);
+				if (splitedResponse.length == 2) {
+					getLogger().info("GetOperation key = "+((KeyedOperation)operation).getKeys());
+				}
 
 				assert splitedResponse.length == 3;
 
