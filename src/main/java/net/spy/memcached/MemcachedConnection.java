@@ -48,6 +48,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.spy.memcached.compat.SpyObject;
 import net.spy.memcached.compat.log.LoggerFactory;
 import net.spy.memcached.internal.ReconnDelay;
+import net.spy.memcached.internal.ZnodeMap;
+import net.spy.memcached.internal.ZnodeType;
+import net.spy.memcached.internal.MigrationMode;
+import net.spy.memcached.internal.MigrationMap;
 import net.spy.memcached.ops.KeyedOperation;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationException;
@@ -90,7 +94,15 @@ public final class MemcachedConnection extends SpyObject {
 	private final int timeoutExceptionThreshold;
 	private final int timeoutRatioThreshold;
 
+	/* ENABLE_MIGRATION if */
+	private BlockingQueue<ZnodeMap> _znodeManageQueue = new LinkedBlockingQueue<ZnodeMap>();
+	private MigrationMode _migrationMode = MigrationMode.Init;
+	/* else */
+	/*
 	private BlockingQueue<String> _nodeManageQueue = new LinkedBlockingQueue<String>();
+	*/
+	/* ENABLE_MIGRATION end */
+
 	private final ConnectionFactory f;
 	private Map<SocketAddress, String> versions = new ConcurrentHashMap<SocketAddress, String>();
 
@@ -243,8 +255,14 @@ public final class MemcachedConnection extends SpyObject {
 			}
 		}
 
-		// Deal with the memcached server group that's been added by CacheManager.  
+		/* ENABLE_MIGRATION if */
+		handleZnodeManageQueue();
+		/* else */
+		/*
+		// Deal with the memcached server group that's been added by CacheManager.
 		handleNodeManageQueue();
+		*/
+		/* ENABLE_MIGRATION end */
 		
 		if(!shutDown && !reconnectQueue.isEmpty()) {
 			attemptReconnects();
@@ -620,6 +638,45 @@ public final class MemcachedConnection extends SpyObject {
 		}
 	}
 
+	/* ENABLE_MIGRATION if */
+	public void putZnodeQueue(ZnodeType ztype, Object arg) {
+		_znodeManageQueue.offer(new ZnodeMap(ztype, arg));
+	}
+
+	public void handleZnodeManageQueue() throws IOException {
+		if (_znodeManageQueue.isEmpty()) {
+			return;
+		}
+
+		ZnodeMap znodeMap = _znodeManageQueue.poll();
+		ZnodeType ztype = znodeMap.getZtype();
+		Object arg = znodeMap.getArgument();
+
+		if (ztype == ZnodeType.CacheList) {
+			/* handle node list */
+
+			// Get addresses from the queue
+			String addrs = (String) arg;
+
+			// Update the memcached server group.
+			if (arcusReplEnabled) {
+				updateConnections(ArcusReplNodeAddress.getAddresses(addrs));
+			} else {
+				updateConnections(AddrUtil.getAddresses(addrs));
+			}
+		} else if (ztype == ZnodeType.MigrationList) {
+			/* TODO::ENABLE_MIGRATION next commit */
+		} else if (ztype == ZnodeType.MigrationState){
+			/* TODO::ENABLE_MIGRATION next commit */
+		} else {
+			/* TODO::ENABLE_MIGRATION next commit */
+		}
+	}
+	/* ENABLE_MIGRATION end */
+
+	/* ENABLE_MIGRATION if */
+	/* else */
+	/* TODO::ENABLE_MIGRATION remove not used code by migration
 	public void putMemcachedQueue(String addrs) {
 		_nodeManageQueue.offer(addrs);
 	}	
@@ -634,18 +691,21 @@ public final class MemcachedConnection extends SpyObject {
 		String addrs = _nodeManageQueue.poll();
 		
 		// Update the memcached server group.
-		/* ENABLE_REPLICATION if */
+		// ENABLE_REPLICATION if
 		if (arcusReplEnabled)
 			updateConnections(ArcusReplNodeAddress.getAddresses(addrs));
 		else
 			updateConnections(AddrUtil.getAddresses(addrs));
-		/* ENABLE_REPLICATION else */
-		/*
-		updateConnections(AddrUtil.getAddresses(addrs));
-		*/
-		/* ENABLE_REPLICATION end */
-	}	
-	
+		// ENABLE_REPLICATION else
+		//
+		//updateConnections(AddrUtil.getAddresses(addrs));
+		//
+		// ENABLE_REPLICATION end
+	}
+	*/
+	/* ENABLE_MIGRATION end */
+
+
 	// Handle any requests that have been made against the client.
 	private void handleInputQueue() {
 		if(!addedQueue.isEmpty()) {
