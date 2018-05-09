@@ -434,6 +434,17 @@ public class CacheManager extends SpyThread implements Watcher,
 	}
 
 	/* ENABLE_MIGRATION if */
+	public void initialMigrationNodeChange(MigrationMode mode) {
+		if (mode == MigrationMode.Init) {
+			MigrationMap mgMap = new MigrationMap("", mode);
+			for (ArcusClient ac : client) {
+				MemcachedConnection conn = ac.getMemcachedConnection();
+				conn.putZnodeQueue(ZnodeType.MigrationList, mgMap);
+				conn.getSelector().wakeup();
+			}
+		}
+	}
+
 	public void commandAlterNodeChange(List<String> migrationList, MigrationMode mode) {
 		if (!migrationList.equals(prevMigrationList)) {
 			getLogger().warn("Migration Node has been changed : From = " + prevMigrationList
@@ -471,16 +482,7 @@ public class CacheManager extends SpyThread implements Watcher,
 			conn.getSelector().wakeup();
 		}
 	}
-	public void initialMigrationNodeChange(MigrationMode mode) {
-		if (mode == MigrationMode.Init) {
-			MigrationMap mgMap = new MigrationMap("", mode);
-			for (ArcusClient ac : client) {
-				MemcachedConnection conn = ac.getMemcachedConnection();
-				conn.putZnodeQueue(ZnodeType.MigrationList, mgMap);
-				conn.getSelector().wakeup();
-			}
-		}
-	}
+
 	/* ENABLE_MIGRATION end */
 
 	public List<String> getPrevChildren() {

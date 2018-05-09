@@ -229,14 +229,10 @@ public class MigrationMonitor extends SpyObject {
 	private void asyncGetAlterList() {
 		switch (mode) {
 			case Join:
-				if(alterListWatcher != null) {
-					zk.getChildren(cloudStatZpath + serviceCode + "/" + joiningListPath, alterListWatcher, alterListWatcher, null);
-				}
+				zk.getChildren(cloudStatZpath + serviceCode + "/" + joiningListPath, alterListWatcher, alterListWatcher, null);
 				break;
 			case Leave:
-				if(alterListWatcher != null) {
-					zk.getChildren(cloudStatZpath + serviceCode + "/" + leavingListPath, alterListWatcher, alterListWatcher, null);
-				}
+				zk.getChildren(cloudStatZpath + serviceCode + "/" + leavingListPath, alterListWatcher, alterListWatcher, null);
 				break;
 			case Init:
 				break;
@@ -247,9 +243,6 @@ public class MigrationMonitor extends SpyObject {
 	}
 
 	private void asyncGetMigrationsList() {
-		if (getLogger().isDebugEnabled()) {
-			getLogger().debug("Set a new watch on " + (cloudStatZpath + serviceCode + "/" + migrationsPath) + " for Migration");
-		}
 		zk.getChildren(cloudStatZpath + serviceCode + "/" + migrationsPath, migrationsWatcher, migrationsWatcher, null);
 	}
 
@@ -268,10 +261,6 @@ public class MigrationMonitor extends SpyObject {
 		}
 
 		return "[serviceCode=" + serviceCode + ", adminSessionId=" + zkSessionId + "]";
-	}
-
-	public MigrationMode getMode() {
-		return mode;
 	}
 
 	public interface MigrationMonitorListener {

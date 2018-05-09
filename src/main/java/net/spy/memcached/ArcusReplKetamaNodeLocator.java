@@ -75,13 +75,13 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 		ketamaGroups = new TreeMap<Long, MemcachedReplicaGroup>();
 		allGroups = new HashMap<String, MemcachedReplicaGroup>();
 		/* ENABLE_MIGRATION if */
+		migrationKetamaGroups = new TreeMap<Long, MemcachedReplicaGroup>();
+		allMigrationNodes = new ArrayList<MemcachedNode>();
 		allExistGroups = new HashMap<String, MemcachedReplicaGroup>();
 		allFailedExistGroups = new HashMap<String, MemcachedReplicaGroup>();
 		allAlterGroups = new HashMap<String, MemcachedReplicaGroup>();
 		allFailedAlterGroups = new HashMap<String, MemcachedReplicaGroup>();
-		migrationKetamaGroups = new TreeMap<Long, MemcachedReplicaGroup>();
 		allHashPoints = new HashMap<String, List<Long>>();
-		allMigrationNodes = new ArrayList<MemcachedNode>();
 		sortedExistNames = new ArrayList<String>();
 		/* ENABLE_MIGRATION end */
 		
@@ -355,6 +355,7 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 						allGroups.get(MemcachedReplicaGroup.getGroupNameForNode(node));
 				if (mrg == null) {
 					/* ENABLE_MIGRATION if */
+					/* FIXME::MWJIN_DEBUG
 					if (migrationMode == MigrationMode.Init) {
 						mrg = new MemcachedReplicaGroupImpl(node);
 						getLogger().info("new memcached replica group added %s", mrg.getGroupName());
@@ -367,17 +368,13 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 							getLogger().info("altering memcached replica group moved %s", mrg.getGroupName());
 						}
 					}
-					allGroups.put(mrg.getGroupName(), mrg);
-					updateHash(mrg, false);
+					*/
 					/* else */
-					/*
+					/* ENABLE_MIGRATION end */
 					mrg = new MemcachedReplicaGroupImpl(node);
 					getLogger().info("new memcached replica group added %s", mrg.getGroupName());
 					allGroups.put(mrg.getGroupName(), mrg);
 					updateHash(mrg, false);
-					allHashPoints.put(mrg.getGroupName(), prepareHashPoint(mrg));
-					*/
-					/* ENABLE_MIGRATION end */
 				} else {
 					mrg.setMemcachedNode(node);
 				}
@@ -399,7 +396,6 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 				allGroups.remove(group.getGroupName());
 				/* ENABLE_MIGRATION if */
 				if (migrationMode == MigrationMode.Init) {
-					allHashPoints.remove(group.getGroupName());
 					updateHash(group, true);
 				} else if (migrationMode == MigrationMode.Join) {
 					MemcachedReplicaGroup mrg = allFailedExistGroups.get(group.getGroupName());

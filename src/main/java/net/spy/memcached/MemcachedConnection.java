@@ -960,8 +960,8 @@ public final class MemcachedConnection extends SpyObject {
 		 * SINGLE KEY   : NOT_MY_KEY <join | leave> <owner name> <owner hpoint>
 		 * MULTIPLE KEY : NOT_MY_KEY <key> <join | leave> <owner name> <owner hpoint>
 		 */
-		APIType opType = operation.getAPIType();
-		if (opType == APIType.GET || opType == APIType.MGET || opType == APIType.BOP_GET) {
+		String[] splitForCheckMultipleKey = operation.getMgResponse(0).split(" ");
+		if (splitForCheckMultipleKey.length > 2) {
 			/* multiple key operation */
 			Map<MemcachedNode, List<Collection<String>>> chunks = new HashMap<MemcachedNode, List<Collection<String>>>();
 			Map<MemcachedNode, Integer> chunkCount = new HashMap<MemcachedNode, Integer>();
@@ -969,12 +969,6 @@ public final class MemcachedConnection extends SpyObject {
 			for(int i = 0; i < operation.getMgResponseSize(); i++) {
 				/* parsing migration response string */
 				String[] splitedResponse = operation.getMgResponse(i).split(" ");
-				/* FIXME::MWJIN_DEBUG */
-				getLogger().info("GetOperation splitedResponse.size = "+splitedResponse.length);
-				if (splitedResponse.length == 2) {
-					getLogger().info("GetOperation key = "+((KeyedOperation)operation).getKeys());
-				}
-
 				assert splitedResponse.length == 3;
 
 				String key = splitedResponse[1];
