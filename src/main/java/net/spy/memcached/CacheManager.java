@@ -32,7 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -119,7 +118,7 @@ public class CacheManager extends SpyThread implements Watcher,
 	/* ENABLE_REPLICATION end */
 
 	/* ENABLE_MIGRATION if */
-	private boolean arcusMigrationEnable = false;
+	private boolean arcusMigrationEnabled = false;
 	/* ENABLE_MIGRATION end */
 	public CacheManager(String hostPort, String serviceCode,
 	                    ConnectionFactoryBuilder cfb, CountDownLatch clientInitLatch, int poolSize,
@@ -202,7 +201,7 @@ public class CacheManager extends SpyThread implements Watcher,
 				/* ENABLE_MIGRATION if */
 				migrationZPath = arcusReplEnabled ? ARCUS_REPL_CLOUD_STAT_ZPATH : ARCUS_BASE_CLOUD_STAT_ZPAHT;
 				if (zk.exists(migrationZPath + serviceCode, false) != null) {
-					arcusMigrationEnable = true;
+					arcusMigrationEnabled = true;
 					getLogger().info("Enable Arcus migration mode");
 				} else {
 					getLogger().info("Unable Arcus migration mode");
@@ -237,7 +236,7 @@ public class CacheManager extends SpyThread implements Watcher,
 			*/
 			/* ENABLE_REPLICATION end */
 			/* ENABLE_MIGRATION if */
-			if (arcusMigrationEnable) {
+			if (arcusMigrationEnabled) {
 				migrationMonitor = new MigrationMonitor(zk, migrationZPath, serviceCode, this);
 			}
 			/* ENABLE_MIGRATION end */
