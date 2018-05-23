@@ -44,11 +44,11 @@ public class MigrationMonitor extends SpyObject {
 
 	private MigrationMonitorListener listener;
 
+	private MigrationWatcher cloudStatWatcher;
+
 	private MigrationWatcher alterListWatcher;
 
 	private MigrationWatcher migrationsWatcher;
-
-	private MigrationWatcher cloudStatWatcher;
 
 	private MigrationMode mode;
 
@@ -88,7 +88,7 @@ public class MigrationMonitor extends SpyObject {
 					getLogger().warn("Cloud_stat zpath is deleted." + getInfo());
 					shutdown();
 				} else {
-					handleCallBackError(code);
+					handleCallbackError(code);
 				}
 			}
 		};
@@ -111,7 +111,7 @@ public class MigrationMonitor extends SpyObject {
 						listener.initialMigrationNodeChange(mode);
 					}
 				} else {
-					handleCallBackError(code);
+					handleCallbackError(code);
 				}
 			}
 		};
@@ -134,7 +134,7 @@ public class MigrationMonitor extends SpyObject {
 						listener.initialMigrationNodeChange(mode);
 					}
 				} else {
-					handleCallBackError(code);
+					handleCallbackError(code);
 				}
 			}
 		};
@@ -143,7 +143,22 @@ public class MigrationMonitor extends SpyObject {
 		asyncGetMigrationStatus();
 	}
 
-	private void handleCallBackError(Code code) {
+	public interface MigrationMonitorListener {
+
+		void commandAlterNodeChange(List<String> children, MigrationMode mode);
+
+		void commandMigrationsZNodeChange(List<String> migrations);
+
+		void initialMigrationNodeChange(MigrationMode mode);
+
+		void commandMigrationVersionChange(long version);
+
+		void closing();
+	}
+
+	private interface MigrationWatcher extends Watcher, AsyncCallback.ChildrenCallback {}
+
+	private void handleCallbackError(Code code) {
 		switch (code) {
 			case SESSIONEXPIRED:
 				getLogger().warn("Session expired. Trying to reconnect to the Arcus admin. " + getInfo());
@@ -260,26 +275,5 @@ public class MigrationMonitor extends SpyObject {
 		}
 
 		return "[serviceCode=" + serviceCode + ", adminSessionId=" + zkSessionId + "]";
-	}
-
-	public interface MigrationMonitorListener {
-
-		void commandAlterNodeChange(List<String> children, MigrationMode mode);
-
-		void commandMigrationsZNodeChange(List<String> migrations);
-
-		void initialMigrationNodeChange(MigrationMode mode);
-
-		void commandMigrationVersionChange(long version);
-
-		void closing();
-	}
-
-	private interface MigrationWatcher extends Watcher, AsyncCallback.ChildrenCallback {
-		@Override
-		void process(WatchedEvent watchedEvent);
-
-		@Override
-		void processResult(int rc, String s, Object o, List<String> list);
 	}
 }
