@@ -355,7 +355,6 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 						allGroups.get(MemcachedReplicaGroup.getGroupNameForNode(node));
 				if (mrg == null) {
 					/* ENABLE_MIGRATION if */
-					/* FIXME::MWJIN_DEBUG
 					if (migrationMode == MigrationMode.Init) {
 						mrg = new MemcachedReplicaGroupImpl(node);
 						getLogger().info("new memcached replica group added %s", mrg.getGroupName());
@@ -368,11 +367,12 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 							getLogger().info("altering memcached replica group moved %s", mrg.getGroupName());
 						}
 					}
-					*/
 					/* else */
-					/* ENABLE_MIGRATION end */
+					/*
 					mrg = new MemcachedReplicaGroupImpl(node);
 					getLogger().info("new memcached replica group added %s", mrg.getGroupName());
+					 */
+					/* ENABLE_MIGRATION end */
 					allGroups.put(mrg.getGroupName(), mrg);
 					updateHash(mrg, false);
 				} else {
@@ -811,9 +811,6 @@ public class ArcusReplKetamaNodeLocator extends SpyObject implements NodeLocator
 					sub = ketamaGroups.subMap(from, true, from+1, false);
 				} else {
 					assert from < lastKey;
-					// FIXME::MWJIN_DEBUG
-					getLogger().info("MWJIN_DEBUG: alter_index = %d, from = %u, last = %u", alterMoveSlice, from, ketamaGroups.lastKey());
-
 					sub = ketamaGroups.subMap(from, true, lastKey, true);
 				}
 				for (Map.Entry<Long, MemcachedReplicaGroup> entry : sub.entrySet()) {

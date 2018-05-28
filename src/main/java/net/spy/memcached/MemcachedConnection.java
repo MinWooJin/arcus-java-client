@@ -1489,10 +1489,6 @@ public final class MemcachedConnection extends SpyObject {
 				/* ENABLE_REPLICATION end */
 				/* ENABLE_MIGRATION if */
 				else if (currentOp.getState() == OperationState.MIGRATING) {
-					/* FIXME::MWJIN_DEBUG */
-					getLogger().info(
-							"Migrating read op: %s and giving the next %d bytes",
-							currentOp, rbuf.remaining());
 					Operation op=qa.removeCurrentReadOp();
 					assert op == currentOp
 							: "Expected to pop " + currentOp + " got " + op;
