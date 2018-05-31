@@ -39,6 +39,9 @@ import java.util.concurrent.TimeUnit;
 
 import net.spy.memcached.ArcusClientException.InitializeClientException;
 import net.spy.memcached.compat.SpyThread;
+import net.spy.memcached.internal.MigrationMap;
+import net.spy.memcached.internal.MigrationMode;
+import net.spy.memcached.internal.ZnodeType;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.WatchedEvent;
@@ -47,7 +50,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 public class CacheManager extends SpyThread implements Watcher,
-        CacheMonitor.CacheMonitorListener {
+        CacheMonitor.CacheMonitorListener, MigrationMonitor.MigrationMonitorListener {
   private static final String ARCUS_BASE_CACHE_LIST_ZPATH = "/arcus/cache_list/";
 
   private static final String ARCUS_BASE_CLIENT_INFO_ZPATH = "/arcus/client_list/";
@@ -58,6 +61,14 @@ public class CacheManager extends SpyThread implements Watcher,
   private static final String ARCUS_REPL_CLIENT_INFO_ZPATH = "/arcus_repl/client_list/";
 
   /* ENABLE_REPLICATION end */
+
+  /* ENABLE_MIGRATION if */
+  private static final String ARCUS_BASE_CLOUD_STAT_ZPAHT = "/arcus/cloud_stat/";
+
+  private static final String ARCUS_REPL_CLOUD_STAT_ZPATH = "/arcus_repl/cloud_stat/";
+
+  /* ENABLE_MIGRATION end */
+
   private static final int ZK_SESSION_TIMEOUT = 15000;
 
   private static final long ZK_CONNECT_TIMEOUT = ZK_SESSION_TIMEOUT;
@@ -86,6 +97,15 @@ public class CacheManager extends SpyThread implements Watcher,
 
   private List<String> prevCacheList;
 
+  /* ENABLE_MIGRATION if */
+  private MigrationMonitor migrationMonitor;
+
+  private List<String> prevAlterList;
+
+  private List<String> prevMigrations;
+
+  /* ENABLE_MIGRATION end */
+
   /**
    * The locator class of the spymemcached has an assumption
    * that it should have one cache node at least.
@@ -99,6 +119,12 @@ public class CacheManager extends SpyThread implements Watcher,
   private boolean arcusReplEnabled = false;
 
   /* ENABLE_REPLICATION end */
+
+  /* ENABLE_MIGRATION if */
+  private boolean arcusMigrationEnabled = false;
+
+  /* ENABLE_MIGRATION end */
+
   public CacheManager(String hostPort, String serviceCode,
                       ConnectionFactoryBuilder cfb, CountDownLatch clientInitLatch, int poolSize,
                       int waitTimeForConnect) {
@@ -123,6 +149,11 @@ public class CacheManager extends SpyThread implements Watcher,
   private void initZooKeeperClient() {
     try {
       getLogger().info("Trying to connect to Arcus admin(%s@%s)", serviceCode, hostPort);
+
+      /* ENABLE_MIGRATION if */
+      String migrationZPath;
+
+      /* ENABLE_MIGRATION end */
 
       zkInitLatch = new CountDownLatch(1);
       zk = new ZooKeeper(hostPort, ZK_SESSION_TIMEOUT, this);
@@ -162,6 +193,17 @@ public class CacheManager extends SpyThread implements Watcher,
         */
 
         /* ENABLE_REPLICATION end */
+        /* ENABLE_MIGRATION if */
+        migrationZPath = arcusReplEnabled ? ARCUS_REPL_CLOUD_STAT_ZPATH : ARCUS_BASE_CLOUD_STAT_ZPAHT;
+        if (zk.exists(migrationZPath + serviceCode, false) != null) {
+          arcusMigrationEnabled = true;
+          getLogger().info("Enable Arcus migration mode");
+        } else {
+          arcusMigrationEnabled = false;
+          getLogger().info("Unable Arcus migration mode");
+        }
+
+        /* ENABLE_MIGRATION end */
 
         String path = getClientInfo();
         if (path.isEmpty()) {
@@ -202,6 +244,11 @@ public class CacheManager extends SpyThread implements Watcher,
       cacheMonitor = new CacheMonitor(zk, ARCUS_BASE_CACHE_LIST_ZPATH, serviceCode, this);
       */
       /* ENABLE_REPLICATION end */
+      /* ENABLE_MIGRATION if */
+      if (arcusMigrationEnabled) {
+        migrationMonitor = new MigrationMonitor(zk, migrationZPath, serviceCode, this);
+      }
+      /* ENABLE_MIGRATION end */
     } catch (IOException e) {
       throw new InitializeClientException("Can't initialize Arcus client.", e);
     }
@@ -279,6 +326,10 @@ public class CacheManager extends SpyThread implements Watcher,
           getLogger().warn("Session expired. Trying to reconnect to the Arcus admin." + getInfo());
           if (cacheMonitor != null)
             cacheMonitor.shutdown();
+          /* ENABLE_MIGRATION if */
+          if (migrationMonitor != null)
+            migrationMonitor.shutdown();
+          /* ENABLE_MIGRATION end */
           break;
       }
     }
@@ -290,6 +341,10 @@ public class CacheManager extends SpyThread implements Watcher,
         while (!shutdownRequested) {
           if (!cacheMonitor.dead) {
             wait();
+          /* ENABLE_MIGRATION if */
+          } else if (!migrationMonitor.dead) {
+            wait();
+          /* ENABLE_MIGRATION end */
           } else {
             getLogger().warn("Unexpected disconnection from Arcus admin. " +
                     "Trying to reconnect to Arcus admin. CacheList =" + prevCacheList);
@@ -388,10 +443,69 @@ public class CacheManager extends SpyThread implements Watcher,
 
     for (ArcusClient ac : client) {
       MemcachedConnection conn = ac.getMemcachedConnection();
+      /* ENABLE_MIGRATION if */
+      conn.putZnodeQueue(ZnodeType.CacheList, addrs);
+      /* else */
+      /*
       conn.putMemcachedQueue(addrs);
+      */
+      /* ENABLE_MIGRATION end */
       conn.getSelector().wakeup();
     }
   }
+
+  /* ENABLE_MIGRATION if */
+  public void initialMigration(MigrationMode mode) {
+    if (mode == MigrationMode.Init) {
+      for (ArcusClient ac : client) {
+        MemcachedConnection conn = ac.getMemcachedConnection();
+        conn.putZnodeQueue(ZnodeType.MigrationInit, mode);
+        conn.getSelector().wakeup();
+      }
+      prevAlterList.clear();
+      prevMigrations.clear();
+    }
+  }
+
+  public void commandAlterListChange(List<String> children, MigrationMode mode) {
+    if (!children.equals(prevAlterList)) {
+      getLogger().warn("Migration Node has been changed : From = " + prevAlterList
+              + " , To = " + children + ", " + "[serviceCode = " + serviceCode
+              + ", addminSessionId=0x" + Long.toHexString(zk.getSessionId()));
+      prevAlterList = children;
+      String addrs = getAddressListString(children);
+
+      if (addrs.length() > 0 || mode == MigrationMode.Init) {
+        MigrationMap mgMap = new MigrationMap(addrs, mode);
+        for (ArcusClient ac : client) {
+          MemcachedConnection conn = ac.getMemcachedConnection();
+          conn.putZnodeQueue(ZnodeType.AlterList, mgMap);
+          conn.getSelector().wakeup();
+        }
+      }
+    }
+  }
+
+  public void commandMigrationsChange(List<String> children) {
+    if (!children.isEmpty() && !children.equals(prevMigrations)) {
+      prevMigrations = children;
+      for (ArcusClient ac : client) {
+        MemcachedConnection conn = ac.getMemcachedConnection();
+        conn.putZnodeQueue(ZnodeType.Migrations, children);
+        conn.getSelector().wakeup();
+      }
+    }
+  }
+
+  public void commandMigrationVersionChange(long version) {
+    for (ArcusClient ac : client) {
+      MemcachedConnection conn = ac.getMemcachedConnection();
+      conn.putZnodeQueue(ZnodeType.MigrationVersion, version);
+      conn.getSelector().wakeup();
+    }
+  }
+
+  /* ENABLE_MIGRATION end */
 
   public List<String> getPrevCacheList() {
     return this.prevCacheList;
