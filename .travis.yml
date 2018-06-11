@@ -14,5 +14,4 @@ script:
 
 notifications:
   email:
-    - wooseok.son@jam2in.com
-    - whchoi83@jam2in.com
+    - alsdn653@jam2in.com
