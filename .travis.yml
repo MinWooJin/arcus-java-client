@@ -10,7 +10,7 @@ before_install:
   - bash install-arcus-memcached.sh develop
 
 script:
-  - mvn test -DUSE_ZK=false
+  - ps -ef | grep memcached
 
 notifications:
   email:
