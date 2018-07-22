@@ -127,6 +127,12 @@ public class CollectionMutateOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(GET_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionMutate.getCommand()
+            + ", args=" + collectionMutate.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

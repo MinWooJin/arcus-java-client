@@ -72,5 +72,4 @@ final class StatsOperationImpl extends OperationImpl
   protected void wasCancelled() {
     cb.receivedStatus(CANCELLED);
   }
-
 }

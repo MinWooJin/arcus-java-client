@@ -197,4 +197,9 @@ abstract class BaseGetOpImpl extends OperationImpl {
     getCallback().receivedStatus(CANCELLED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + cmd
+            + ", numKeys=" + keys.size() + "]";
+  }
 }

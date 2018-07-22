@@ -81,6 +81,13 @@ public class ConnectionFactoryBuilder {
   private int bulkServiceLoopLimit = DefaultConnectionFactory.DEFAULT_BULKSERVICE_LOOP_LIMIT;
   private long bulkServiceSingleOpTimeout = DefaultConnectionFactory.DEFAULT_BULKSERVICE_SINGLE_OP_TIMEOUT;
 
+  private boolean monitorEnable = DefaultConnectionFactory.DEFAULT_DRIVE_MONITOR;
+  private boolean monitorServer = DefaultConnectionFactory.DEFAULT_DRIVE_MONITOR_SERVER;
+  private long monitorDuration = DefaultConnectionFactory.DEFAULT_DRIVE_MONITOR_DURATION;
+  private int monitorServerPort = DefaultConnectionFactory.DEFAULT_DRIVE_MONITOR_PORT;
+  private int monitorLevel = DefaultConnectionFactory.DEFAULT_DRIVE_MONITOR_LEVEL;
+
+
   private int maxSMGetChunkSize = DefaultConnectionFactory.DEFAULT_MAX_SMGET_KEY_CHUNK_SIZE;
   private byte delimiter = DefaultConnectionFactory.DEFAULT_DELIMITER;
 
@@ -379,6 +386,63 @@ public class ConnectionFactoryBuilder {
   }
 
   /**
+   * Set the enable monitor.
+   */
+  public ConnectionFactoryBuilder setEnableMonitor(int duration, int level) {
+    assert level < 0 || level < 3 : "Monitor log level is 0 ~ 3";
+    monitorEnable = true;
+    monitorDuration = duration;
+    monitorLevel = level;
+    return this;
+  }
+
+  /**
+   * Set the enable monitor.
+   */
+  public ConnectionFactoryBuilder setEnableMonitor(int duration, int level, boolean server) {
+    assert level < 0 || level < 3 : "Monitor log level is 0 ~ 3";
+    monitorEnable = true;
+    monitorDuration = duration;
+    monitorLevel = level;
+    monitorServer = server;
+    return this;
+  }
+
+  /**
+   * Set the enable monitor.
+   */
+  public ConnectionFactoryBuilder setEnableMonitor(int duration, int level, boolean server, int port) {
+    assert level < 0 || level < 3 : "Monitor log level is 0 ~ 3";
+    monitorEnable = true;
+    monitorDuration = duration;
+    monitorLevel = level;
+    monitorServer = server;
+    monitorServerPort = port;
+    return this;
+  }
+
+  /**
+   * Set monitor server use Deafult port.
+   */
+  public ConnectionFactoryBuilder setMonitorServer() {
+    monitorEnable = true;
+    monitorServer = true;
+    monitorDuration = 0;
+    return this;
+  }
+
+  /**
+   * Set monitor server use user port.
+   */
+  public ConnectionFactoryBuilder setMonitorServer(int p) {
+    monitorEnable = true;
+    monitorServer = true;
+    monitorDuration = 0;
+    monitorServerPort = p;
+    return this;
+  }
+
+  /**
    * Set delimiter to separate key and prefix
    */
   public ConnectionFactoryBuilder setDelimiter(byte to) {
@@ -436,6 +500,26 @@ public class ConnectionFactoryBuilder {
   }
 
   /* ENABLE_REPLICATION end */
+
+  public boolean getEnabledMonitor() {
+    return this.monitorEnable;
+  }
+
+  public boolean getEnalbedMonitorServer() {
+    return this.monitorServer;
+  }
+
+  public long getMonitorDuration() {
+    return this.monitorDuration;
+  }
+
+  public int getMonitorServerPort() {
+    return this.monitorServerPort;
+  }
+
+  public int getMonitorLevel() {
+    return this.monitorLevel;
+  }
 
   /**
    * Get the ConnectionFactory set up with the provided parameters.
@@ -650,6 +734,31 @@ public class ConnectionFactoryBuilder {
         return apiReadPriorityList;
       }
       /* ENABLE_REPLICATION end */
+
+      @Override
+      public boolean getEnabledMonitor() {
+        return monitorEnable;
+      }
+
+      @Override
+      public boolean getEnabledMonitorServer() {
+        return monitorServer;
+      }
+
+      @Override
+      public long getMonitorDuration() {
+        return monitorDuration;
+      }
+
+      @Override
+      public int getMonitorServerPort() {
+        return monitorServerPort;
+      }
+
+      @Override
+      public int getMonitorLevel() {
+        return monitorLevel;
+      }
     };
   }
 

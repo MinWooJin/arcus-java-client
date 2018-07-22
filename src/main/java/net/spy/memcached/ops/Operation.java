@@ -104,4 +104,20 @@ public interface Operation {
   boolean isReadOperation();
 
   APIType getAPIType();
+
+  /**
+   * Set monitor to operation when monitoring enabled
+   * @param m a Monitor
+   */
+  void setMonitor(OperationMonitor m);
+
+  /**
+   * Get monitor for logging of this operation.
+   */
+  OperationMonitor getMonitor();
+
+  /**
+   * Get argument string
+   */
+  String makeAGString();
 }

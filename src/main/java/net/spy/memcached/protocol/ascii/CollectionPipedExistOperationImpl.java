@@ -132,6 +132,11 @@ public class CollectionPipedExistOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(EXIST_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return setPipedExist.getAGString();
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

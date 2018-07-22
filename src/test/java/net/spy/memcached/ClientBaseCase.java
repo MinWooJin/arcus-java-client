@@ -257,6 +257,31 @@ public abstract class ClientBaseCase extends TestCase {
           return inner.getAPIReadPriority();
         }
         /* ENABLE_REPLICATION end */
+
+        @Override
+        public boolean getEnabledMonitor() {
+          return inner.getEnabledMonitor();
+        }
+
+        @Override
+        public boolean getEnabledMonitorServer() {
+          return inner.getEnabledMonitorServer();
+        }
+
+        @Override
+        public long getMonitorDuration() {
+          return inner.getMonitorDuration();
+        }
+
+        @Override
+        public int getMonitorServerPort() {
+          return inner.getMonitorServerPort();
+        }
+
+        @Override
+        public int getMonitorLevel() {
+          return inner.getMonitorLevel();
+        }
       };
     }
 

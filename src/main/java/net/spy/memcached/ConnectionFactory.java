@@ -230,4 +230,29 @@ public interface ConnectionFactory {
    */
   Map<APIType, ReadPriority> getAPIReadPriority();
   /* ENABLE_REPLICATION end */
+
+  /**
+   * get enabled monitoring
+   */
+  boolean getEnabledMonitor();
+
+  /**
+   * get enalbed monitoring server
+   */
+  boolean getEnabledMonitorServer();
+
+  /**
+   * get monitoring duration
+   */
+  long getMonitorDuration();
+
+  /**
+   * get monitoring server port
+   */
+  int getMonitorServerPort();
+
+  /**
+   * get monitoring level
+   */
+  int getMonitorLevel();
 }

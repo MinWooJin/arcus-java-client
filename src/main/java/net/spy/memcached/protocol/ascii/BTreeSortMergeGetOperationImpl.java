@@ -412,6 +412,11 @@ public class BTreeSortMergeGetOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(GET_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[" + smGet.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return smGet.getKeyList();
   }

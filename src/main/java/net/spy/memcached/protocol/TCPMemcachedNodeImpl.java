@@ -38,9 +38,7 @@ import net.spy.memcached.CacheManager;
 import net.spy.memcached.MemcachedNode;
 import net.spy.memcached.MemcachedReplicaGroup;
 import net.spy.memcached.compat.SpyObject;
-import net.spy.memcached.ops.APIType;
-import net.spy.memcached.ops.Operation;
-import net.spy.memcached.ops.OperationState;
+import net.spy.memcached.ops.*;
 
 /**
  * Represents a node with the memcached cluster, along with buffering and
@@ -271,7 +269,7 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject
   /* (non-Javadoc)
    * @see net.spy.memcached.MemcachedNode#fillWriteBuffer(boolean)
    */
-  public final void fillWriteBuffer(boolean shouldOptimize) {
+  public final void fillWriteBuffer(boolean shouldOptimize, OperationMonitorWriter operationMonitorWriter, String hostInfo) {
     if (toWrite == 0 && readQ.remainingCapacity() > 0) {
       getWbuf().clear();
       Operation o = getCurrentWriteOp();
@@ -296,6 +294,20 @@ public abstract class TCPMemcachedNodeImpl extends SpyObject
                 o, getWbuf());
         if (!o.getBuffer().hasRemaining()) {
           o.writeComplete();
+
+          // Enable Operation Monitor
+          if (operationMonitorWriter != null) {
+            String key = null;
+            String arguments = null;
+            if (o instanceof KeyedOperation) {
+              Collection<String> keys = ((KeyedOperation) o).getKeys();
+              key = keys.iterator().next();
+              arguments = o.makeAGString();
+            }
+            OperationMonitor m = new OperationMonitor(operationMonitorWriter, o, hostInfo, getSocketAddress(), key, arguments);
+            o.setMonitor(m);
+          }
+
           transitionWriteItem();
 
           preparePending();

@@ -155,6 +155,11 @@ public class CollectionPipedUpdateOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(STORE_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return update.getAGString();
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

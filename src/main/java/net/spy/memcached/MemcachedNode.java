@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 import net.spy.memcached.ops.Operation;
+import net.spy.memcached.ops.OperationMonitorWriter;
 
 /**
  * Interface defining a connection to a memcached server.
@@ -65,7 +66,7 @@ public interface MemcachedNode {
    * @param optimizeGets if true, combine sequential gets into a single
    *                     multi-key get
    */
-  void fillWriteBuffer(boolean optimizeGets);
+  void fillWriteBuffer(boolean optimizeGets, OperationMonitorWriter operationMonitorWriter, String hostInfo);
 
   /**
    * Transition the current write item into a read state.

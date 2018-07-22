@@ -29,6 +29,7 @@ import net.spy.memcached.ops.OperationException;
 import net.spy.memcached.ops.OperationState;
 import net.spy.memcached.ops.OperationStatus;
 import net.spy.memcached.ops.OperationType;
+import net.spy.memcached.ops.OperationMonitor;
 
 /**
  * Base class for protocol-specific operation implementations.
@@ -47,6 +48,7 @@ public abstract class BaseOperationImpl extends SpyObject {
   private OperationException exception = null;
   protected OperationCallback callback = null;
   private volatile MemcachedNode handlingNode = null;
+  private OperationMonitor monitor = null;
 
   private OperationType opType = OperationType.UNDEFINED;
   private APIType apiType = APIType.UNDEFINED;
@@ -153,6 +155,10 @@ public abstract class BaseOperationImpl extends SpyObject {
         getLogger().debug("Operation move completed : %s at %s", this, getHandlingNode());
       /* ENABLE_REPLICATION end */
       callback.complete();
+
+      if (monitor != null) {
+        monitor.putOperationMonitor();
+      }
     }
     if (state == OperationState.TIMEDOUT) {
       cmd = null;
@@ -230,5 +236,17 @@ public abstract class BaseOperationImpl extends SpyObject {
 
   public void setAPIType(APIType type) {
     this.apiType = type;
+  }
+
+  public void setMonitor(OperationMonitor m) {
+    this.monitor = m;
+  }
+
+  public OperationMonitor getMonitor() {
+    return this.monitor;
+  }
+
+  public String makeAGString() {
+    return null;
   }
 }

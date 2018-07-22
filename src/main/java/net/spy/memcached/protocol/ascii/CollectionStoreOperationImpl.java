@@ -130,6 +130,15 @@ public class CollectionStoreOperationImpl extends OperationImpl
     getCallback().receivedStatus(STORE_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionStore.getCommand()
+            + ", subkey=" + subkey
+            + ", eflag=" + collectionStore.getElementFlagByHex()
+            + ", args=" + collectionStore.stringify()
+            + ", vlen=" + data.length + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

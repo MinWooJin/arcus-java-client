@@ -91,6 +91,14 @@ abstract class BaseStoreOperationImpl extends OperationImpl {
     getCallback().receivedStatus(CANCELLED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[type=" + type
+            + ", flags=" + flags
+            + ", exp=" + exp
+            + ", vlen=" + data.length + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

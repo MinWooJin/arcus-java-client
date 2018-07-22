@@ -77,6 +77,9 @@ public class CollectionFuture<T> implements Future<T> {
     if (!latch.await(duration, units)) {
       // whenever timeout occurs, continuous timeout counter will increase by 1.
       MemcachedConnection.opTimedOut(op);
+      if (op.getMonitor() != null) {
+        op.getMonitor().setToutTime();
+      }
       throw new CheckedOperationTimeoutException(
               "Timed out waiting for operation. >" + duration + " " + units, op);
     } else {

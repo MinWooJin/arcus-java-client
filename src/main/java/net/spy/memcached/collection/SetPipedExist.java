@@ -101,4 +101,9 @@ public class SetPipedExist<T> extends CollectionObject {
   public ByteBuffer getBinaryCommand() {
     throw new RuntimeException("not supported in binary protocol yet.");
   }
+
+  public String getAGString() {
+    return "[cmd=" + COMMAND
+            + ", pipeCount=" + this.itemCount + "]";
+  }
 }

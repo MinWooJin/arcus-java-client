@@ -52,6 +52,8 @@ public abstract class CollectionBulkStore<T> extends CollectionObject {
 
   public abstract ByteBuffer getBinaryCommand();
 
+  public abstract String getAGString();
+
   /**
    *
    */
@@ -159,6 +161,13 @@ public abstract class CollectionBulkStore<T> extends CollectionObject {
     public ByteBuffer getBinaryCommand() {
       throw new RuntimeException("not supported in binary protocol yet.");
     }
+
+    public String getAGString() {
+      return "[cmd=" + COMMAND
+              + ", bkey=" + this.bkey
+              + ", eflag=" + this.eflag
+              + ", bulkCount=" + this.itemCount + "]";
+    }
   }
 
   public static class MapBulkStore<T> extends CollectionBulkStore<T> {
@@ -241,6 +250,12 @@ public abstract class CollectionBulkStore<T> extends CollectionObject {
     public ByteBuffer getBinaryCommand() {
       throw new RuntimeException("not supported in binary protocol yet.");
     }
+
+    public String getAGString() {
+      return "[cmd=" + COMMAND
+              + ", mkey=" + this.mkey
+              + ", bulkCount=" + this.itemCount + "]";
+    }
   }
 
   public static class SetBulkStore<T> extends CollectionBulkStore<T> {
@@ -317,6 +332,11 @@ public abstract class CollectionBulkStore<T> extends CollectionObject {
 
     public ByteBuffer getBinaryCommand() {
       throw new RuntimeException("not supported in binary protocol yet.");
+    }
+
+    public String getAGString() {
+      return "[cmd=" + COMMAND
+              + ", bulkCount=" + this.itemCount + "]";
     }
   }
 
@@ -399,6 +419,11 @@ public abstract class CollectionBulkStore<T> extends CollectionObject {
 
     public ByteBuffer getBinaryCommand() {
       throw new RuntimeException("not supported in binary protocol yet.");
+    }
+
+    public String getAGString() {
+      return "[cmd=" + COMMAND
+              + ", bulkCount=" + this.itemCount + "]";
     }
   }
 

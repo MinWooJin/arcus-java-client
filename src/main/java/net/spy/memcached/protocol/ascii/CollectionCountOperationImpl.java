@@ -112,6 +112,12 @@ public class CollectionCountOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(GET_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionCount.getCommand()
+            + ", args=" + collectionCount.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

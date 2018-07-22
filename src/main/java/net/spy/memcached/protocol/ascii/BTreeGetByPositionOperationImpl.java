@@ -259,6 +259,12 @@ public class BTreeGetByPositionOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(GET_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + get.getCommand()
+            + ", args=" + get.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

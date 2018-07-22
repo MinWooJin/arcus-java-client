@@ -23,6 +23,7 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -54,6 +55,7 @@ import net.spy.memcached.ops.OperationException;
 import net.spy.memcached.ops.OperationState;
 import net.spy.memcached.ops.OperationCallback;
 import net.spy.memcached.ops.OperationStatus;
+import net.spy.memcached.ops.OperationMonitorWriter;
 
 /**
  * Connection to a cluster of memcached servers.
@@ -78,6 +80,8 @@ public final class MemcachedConnection extends SpyObject {
   // maximum amount of time to wait between reconnect attempts
   private final long maxDelay;
   private int emptySelects = 0;
+  private OperationMonitorWriter operationMonitorWriter = null;
+  private String hostInfo = null;
   // AddedQueue is used to track the QueueAttachments for which operations
   // have recently been queued.
   private final ConcurrentLinkedQueue<MemcachedNode> addedQueue;
@@ -122,6 +126,7 @@ public final class MemcachedConnection extends SpyObject {
     timeoutExceptionThreshold = f.getTimeoutExceptionThreshold();
     timeoutRatioThreshold = f.getTimeoutRatioThreshold();
     selector = Selector.open();
+    hostInfo = getHostInfo();
     List<MemcachedNode> connections = new ArrayList<MemcachedNode>(a.size());
     for (SocketAddress sa : a) {
       connections.add(attachMemcachedNode(sa));
@@ -169,6 +174,18 @@ public final class MemcachedConnection extends SpyObject {
     }
     getLogger().debug("Checked the selectors.");
     return true;
+  }
+
+  private String getHostInfo() {
+    String hostInfo;
+    try {
+      hostInfo = InetAddress.getLocalHost().getHostName() + "_"
+              + InetAddress.getLocalHost().getHostAddress() + "_";
+    } catch (Exception e) {
+      getLogger().fatal("Can't get client host info.", e);
+      hostInfo = "unknown-host_0.0.0.0_";
+    }
+    return hostInfo;
   }
 
   /**
@@ -626,6 +643,14 @@ public final class MemcachedConnection extends SpyObject {
     _nodeManageQueue.offer(addrs);
   }
 
+  public void setOperationMonitorWriter(OperationMonitorWriter omw) {
+    operationMonitorWriter = omw;
+  }
+
+  public OperationMonitorWriter getOperationMonitorWriter() {
+    return operationMonitorWriter;
+  }
+
   // Handle the memcached server group that's been added by CacheManager.
   void handleNodeManageQueue() throws IOException {
     if (_nodeManageQueue.isEmpty()) {
@@ -789,11 +814,11 @@ public final class MemcachedConnection extends SpyObject {
 
   private void handleWrites(SelectionKey sk, MemcachedNode qa)
           throws IOException {
-    qa.fillWriteBuffer(shouldOptimize);
+    qa.fillWriteBuffer(shouldOptimize, operationMonitorWriter, hostInfo);
     boolean canWriteMore = qa.getBytesRemainingToWrite() > 0;
     while (canWriteMore) {
       int wrote = qa.writeSome();
-      qa.fillWriteBuffer(shouldOptimize);
+      qa.fillWriteBuffer(shouldOptimize, operationMonitorWriter, hostInfo);
       canWriteMore = wrote > 0 && qa.getBytesRemainingToWrite() > 0;
     }
   }

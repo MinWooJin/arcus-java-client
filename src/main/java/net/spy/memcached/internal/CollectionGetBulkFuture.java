@@ -57,6 +57,9 @@ public class CollectionGetBulkFuture<T> implements Future<T> {
     if (!latch.await(duration, units)) {
       for (Operation op : ops) {
         MemcachedConnection.opTimedOut(op);
+        if (op.getMonitor() != null) {
+          op.getMonitor().setToutTime();
+        }
       }
       throw new CheckedOperationTimeoutException("Timed out waiting for b+tree get bulk operation", ops);
     } else {

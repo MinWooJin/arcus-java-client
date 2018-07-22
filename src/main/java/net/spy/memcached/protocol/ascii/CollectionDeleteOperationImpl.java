@@ -135,6 +135,12 @@ public class CollectionDeleteOperationImpl extends OperationImpl
     getCallback().receivedStatus(DELETE_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionDelete.getCommand()
+            + ", args=" + collectionDelete.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

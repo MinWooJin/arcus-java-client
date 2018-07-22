@@ -128,6 +128,12 @@ public class CollectionUpsertOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(STORE_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionStore.getCommand()
+            + ", args=" + collectionStore.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

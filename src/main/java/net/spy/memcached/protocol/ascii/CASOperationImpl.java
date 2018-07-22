@@ -83,6 +83,14 @@ class CASOperationImpl extends OperationImpl implements CASOperation {
     getCallback().receivedStatus(CANCELLED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[flags=" + false
+            + ", exp=" + exp
+            + ", casValue=" + casValue
+            + ", vlen=" + data.length + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

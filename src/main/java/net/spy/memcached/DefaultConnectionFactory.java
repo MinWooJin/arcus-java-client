@@ -138,6 +138,31 @@ public class DefaultConnectionFactory extends SpyObject
   public static final boolean DEFAULT_FRONT_CACHE_COPY_ON_WRITE = false;
 
   /**
+   * Default drive monitoring : false
+   */
+  public static final boolean DEFAULT_DRIVE_MONITOR = false;
+
+  /**
+   * Default drive monitoring server : false
+   */
+  public static final boolean DEFAULT_DRIVE_MONITOR_SERVER = false;
+
+  /**
+   * Default drive monitoring duration : 1 hour, 3600 sec
+   */
+  public static final long DEFAULT_DRIVE_MONITOR_DURATION = 60; /* by second, 1 min */
+
+  /**
+   * Default drive monitoring level : 0 (CPU, GC only)
+   */
+  public static final int DEFAULT_DRIVE_MONITOR_LEVEL = 0;
+
+  /**
+   * Default drive monitoring server port
+   */
+  public static final int DEFAULT_DRIVE_MONITOR_PORT = 8328;
+
+  /**
    * Default bulk service thread count
    */
   public static final int DEFAULT_BULKSERVICE_THREAD_COUNT = 1;
@@ -490,4 +515,44 @@ public class DefaultConnectionFactory extends SpyObject
     return DEFAULT_API_READ_PRIORITY_LIST;
   }
   /* ENABLE_REPLICATION end */
+
+  /*
+   * (non-Javadoc)
+   * @see net.spy.memcached.ConnectionFactory#getEnabledMonitor()
+   */
+  public boolean getEnabledMonitor() {
+    return DEFAULT_DRIVE_MONITOR;
+  }
+
+  /*
+   * (non-Javadoc)
+   * @see net.spy.memcached.ConnectionFactory#getEnabledMonitorServer()
+   */
+  public boolean getEnabledMonitorServer() {
+    return DEFAULT_DRIVE_MONITOR_SERVER;
+  }
+
+  /*
+   * (non-Javadoc)
+   * @see net.spy.memcached.ConnectionFactory#getMonitorDuration()
+   */
+  public long getMonitorDuration() {
+    return DEFAULT_DRIVE_MONITOR_DURATION;
+  }
+
+  /*
+   * (non-Javadoc)
+   * @see net.spy.memcached.ConnectionFactory#getMonitorServerPort()
+   */
+  public int getMonitorServerPort() {
+    return DEFAULT_DRIVE_MONITOR_PORT;
+  }
+
+  /*
+   * (non-Javadoc)
+   * @see net.spy.memcached.ConnectionFactory#getMonitorLevel()
+   */
+  public int getMonitorLevel() {
+    return DEFAULT_DRIVE_MONITOR_LEVEL;
+  }
 }

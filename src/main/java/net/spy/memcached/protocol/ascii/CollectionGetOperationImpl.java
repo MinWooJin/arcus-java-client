@@ -271,6 +271,12 @@ public class CollectionGetOperationImpl extends OperationImpl
     getCallback().receivedStatus(GET_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionGet.getCommand()
+            + ", args=" + collectionGet.stringify()  + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

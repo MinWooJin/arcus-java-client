@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 import net.spy.memcached.ops.Operation;
+import net.spy.memcached.ops.OperationMonitorWriter;
 
 public class MockMemcachedNode implements MemcachedNode {
   private final InetSocketAddress socketAddress;
@@ -74,7 +75,7 @@ public class MockMemcachedNode implements MemcachedNode {
     // noop
   }
 
-  public void fillWriteBuffer(boolean optimizeGets) {
+  public void fillWriteBuffer(boolean optimizeGets, OperationMonitorWriter operationMonitorWriter, String hostInfo) {
     // noop
   }
 

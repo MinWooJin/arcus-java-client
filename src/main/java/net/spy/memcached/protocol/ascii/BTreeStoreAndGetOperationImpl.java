@@ -300,6 +300,14 @@ public class BTreeStoreAndGetOperationImpl extends OperationImpl implements
   }
 
   @Override
+  public String makeAGString() {
+    return "[cmd=" + get.getCommand()
+            + ", bkey=" + get.getBkeyObject().getBKeyAsString()
+            + ", eflag=" + get.getElementFlagByHex()
+            + ", args=" + get.stringify() + "]";
+  }
+
+  @Override
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

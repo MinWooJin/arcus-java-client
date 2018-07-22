@@ -49,6 +49,8 @@ public abstract class CollectionPipedUpdate<T> extends CollectionObject {
 
   public abstract ByteBuffer getBinaryCommand();
 
+  public abstract String getAGString();
+
   public static class BTreePipedUpdate<T> extends CollectionPipedUpdate<T> {
 
     private static final String COMMAND = "bop update";
@@ -145,6 +147,11 @@ public abstract class CollectionPipedUpdate<T> extends CollectionObject {
     public ByteBuffer getBinaryCommand() {
       throw new RuntimeException("not supported in binary protocol yet.");
     }
+
+    public String getAGString() {
+      return "[cmd=" + COMMAND
+              + ", pipeCount=" + this.itemCount + "]";
+    }
   }
 
 
@@ -214,6 +221,11 @@ public abstract class CollectionPipedUpdate<T> extends CollectionObject {
 
     public ByteBuffer getBinaryCommand() {
       throw new RuntimeException("not supported in binary protocol yet.");
+    }
+
+    public String getAGString() {
+      return "[cmd=" + COMMAND
+              + ", pipeCount=" + this.itemCount + "]";
     }
   }
 

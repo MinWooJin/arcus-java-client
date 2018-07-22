@@ -110,6 +110,12 @@ public class CollectionCreateOperationImpl extends OperationImpl
   }
 
   @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionCreate.getCommand()
+            + ", args=" + collectionCreate.stringify() + "]";
+  }
+
+  @Override
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

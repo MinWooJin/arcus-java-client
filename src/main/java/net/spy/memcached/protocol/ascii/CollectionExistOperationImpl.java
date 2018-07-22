@@ -110,6 +110,13 @@ public class CollectionExistOperationImpl extends OperationImpl
     getCallback().receivedStatus(EXIST_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + collectionExist.getCommand()
+            + ", subkey=" + subkey
+            + ", args=" + collectionExist.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

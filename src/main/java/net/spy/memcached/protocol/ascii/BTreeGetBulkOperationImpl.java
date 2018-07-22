@@ -255,6 +255,12 @@ public class BTreeGetBulkOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(GET_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[cmd=" + getBulk.getCommand()
+            + ", args" + getBulk.stringify() + "]";
+  }
+
   public Collection<String> getKeys() {
     return getBulk.getKeyList();
   }

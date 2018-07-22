@@ -198,6 +198,7 @@ public class ArcusClient extends FrontCacheMemcachedClient implements ArcusClien
   private static final int MAX_MKEY_LENGTH = 250;
 
   private CacheManager cacheManager;
+  private static MonitorServer monitorServer = null;
 
   public void setCacheManager(CacheManager cacheManager) {
     this.cacheManager = cacheManager;
@@ -298,6 +299,17 @@ public class ArcusClient extends FrontCacheMemcachedClient implements ArcusClien
 
     ArcusClient[] client = exe.getAC();
 
+    if (cfb.getEnabledMonitor()) {
+      try {
+        monitorServer = new MonitorServer(client, cfb.getMonitorDuration(), cfb.getMonitorLevel(),
+                cfb.getEnalbedMonitorServer(), cfb.getMonitorServerPort());
+      } catch (Exception e) {
+        arcusLogger.warn("maybe monitor server port already used!");
+        exe.shutdown();
+        throw new IllegalArgumentException("Monitor server cannot used.");
+      }
+    }
+
     return new ArcusClientPool(poolSize, client);
   }
 
@@ -363,6 +375,9 @@ public class ArcusClient extends FrontCacheMemcachedClient implements ArcusClien
     // Connect to Arcus server directly, cache manager may be null.
     if (cacheManager != null) {
       cacheManager.shutdown();
+    }
+    if (monitorServer != null) {
+      monitorServer.shutdown();
     }
     dead = true;
     if (bulkService != null) {

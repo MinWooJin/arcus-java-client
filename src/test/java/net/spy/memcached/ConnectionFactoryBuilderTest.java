@@ -141,6 +141,7 @@ public class ConnectionFactoryBuilderTest extends BaseMockCase {
             .setLocatorType(Locator.CONSISTENT)
             .setOpQueueMaxBlockTime(19)
             .setAuthDescriptor(anAuthDescriptor)
+            .setEnableMonitor(0,0)
             .build();
 
     assertEquals(4225, f.getOperationTimeout());
@@ -159,6 +160,7 @@ public class ConnectionFactoryBuilderTest extends BaseMockCase {
     assertTrue(f.useNagleAlgorithm());
     assertEquals(f.getOpQueueMaxBlockTime(), 19);
     assertSame(anAuthDescriptor, f.getAuthDescriptor());
+    assertFalse(f.getEnabledMonitor());
 
     MemcachedNode n = new MockMemcachedNode(
             InetSocketAddress.createUnresolved("localhost", 11211));

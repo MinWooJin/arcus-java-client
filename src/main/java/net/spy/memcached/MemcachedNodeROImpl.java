@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 import net.spy.memcached.ops.Operation;
+import net.spy.memcached.ops.OperationMonitorWriter;
 
 class MemcachedNodeROImpl implements MemcachedNode {
 
@@ -59,7 +60,7 @@ class MemcachedNodeROImpl implements MemcachedNode {
     throw new UnsupportedOperationException();
   }
 
-  public void fillWriteBuffer(boolean optimizeGets) {
+  public void fillWriteBuffer(boolean optimizeGets, OperationMonitorWriter operationMonitorWriter, String hostInfo) {
     throw new UnsupportedOperationException();
   }
 

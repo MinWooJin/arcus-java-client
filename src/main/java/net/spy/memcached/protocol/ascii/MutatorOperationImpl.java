@@ -103,6 +103,13 @@ final class MutatorOperationImpl extends OperationImpl
     getCallback().receivedStatus(CANCELLED);
   }
 
+  @Override
+  public String makeAGString() {
+    return "[name=" + mutator.name()
+            + ", amount=" + String.valueOf(amount)
+            + ", exp=" + String.valueOf(exp) + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }

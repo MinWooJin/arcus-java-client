@@ -145,6 +145,24 @@ public class CollectionUpdateOperationImpl extends OperationImpl implements
     getCallback().receivedStatus(STORE_CANCELED);
   }
 
+  @Override
+  public String makeAGString() {
+    StringBuilder b = new StringBuilder();
+    ElementFlagUpdate eflagUpdate = collectionUpdate.getElementFlagUpdate();
+    if (eflagUpdate != null) {
+      if (eflagUpdate.getElementFlagOffset() > -1 && eflagUpdate.getBitOp() != null) {
+        b.append(eflagUpdate.getElementFlagOffset()).append(" ");
+        b.append(eflagUpdate.getBitOp()).append(" ");
+      }
+      b.append(eflagUpdate.getElementFlagByHex());
+    }
+    String eflagStr = b.toString();
+    return "[cmd=" + collectionUpdate.getCommand()
+            + ", subkey=" + subkey
+            + ", eflag=" + eflagStr
+            + ", vlen=" + (data != null ? data.length : "-1") + "]";
+  }
+
   public Collection<String> getKeys() {
     return Collections.singleton(key);
   }
