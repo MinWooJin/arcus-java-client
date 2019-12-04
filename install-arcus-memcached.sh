@@ -50,6 +50,10 @@ else  # cache exist
     echo "ARCUS project was updated, git pulling..."
     git pull
     cd $HOME/arcus/scripts && ./build.sh
+    if [ $? == -1]; then
+       echo $?
+       cat $HOME/arcus/scripts/build.log
+    fi
   fi
 
   cd $HOME/arcus/server

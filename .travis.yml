@@ -8,7 +8,6 @@ cache:
 before_install:
   - sudo apt-get install -qq build-essential autoconf automake libtool libcppunit-dev python-setuptools python-dev ant
   - bash install-arcus-memcached.sh develop
-  - cat /home/travis/arcus/scripts/build.log
 
 script:
   - mvn test -DUSE_ZK=false -DARCUS_HOST=127.0.0.1:11212 && mvn test -DUSE_ZK=true
