@@ -49,12 +49,15 @@ else  # cache exist
   if [ "$BRANCH_STATUS" == "NEEDTOPULL" ]; then
     echo "ARCUS project was updated, git pulling..."
     git pull
+#    cd $HOME/arcus/scripts && ./build.sh
     cd $HOME/arcus/scripts
     ./build.sh &
-    if [ $? == -1 ]; then
-      echo "failed"
+    $pid = $!
+    wait $pid
+#    if [ $? == -1 ]; then
+      echo "return = $?"
       cat $HOME/arcus/scripts/build.log
-    fi
+#    fi
   fi
 
   cd $HOME/arcus/server
