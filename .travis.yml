@@ -1,6 +1,5 @@
 language: java
 jdk:
-  - oraclejdk8
   - openjdk8
 
 cache:
@@ -12,10 +11,6 @@ before_install:
   - echo "before_install"
   - sudo apt-get install -qq build-essential autoconf automake libtool libcppunit-dev python-setuptools python-dev ant
   - bash install-arcus-memcached.sh develop
-
-after_failure:
-  - echo "after_faulure"
-  - cat $HOME/arcus/scripts/build.log
 
 script:
   - echo "script"
