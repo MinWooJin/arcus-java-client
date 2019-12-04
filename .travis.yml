@@ -8,6 +8,7 @@ cache:
 before_install:
   - echo "before_install"
   - sudo apt-get install -qq build-essential autoconf automake libtool libcppunit-dev python-setuptools python-dev ant
+  - ant -version
   - bash install-arcus-memcached.sh develop
 
 after_failure:
