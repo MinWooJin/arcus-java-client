@@ -47,6 +47,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import net.spy.memcached.compat.SpyObject;
 import net.spy.memcached.compat.log.LoggerFactory;
 import net.spy.memcached.internal.ReconnDelay;
+import net.spy.memcached.internal.ZnodeMap;
+import net.spy.memcached.internal.ZnodeType;
+import net.spy.memcached.internal.MigrationMode;
 import net.spy.memcached.ops.KeyedOperation;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.ops.OperationException;
@@ -90,7 +93,15 @@ public final class MemcachedConnection extends SpyObject {
   private final int timeoutExceptionThreshold;
   private final int timeoutRatioThreshold;
 
+  /* ENABLE_MIGRATION if */
+  private BlockingQueue<ZnodeMap> _znodeManageQueue = new LinkedBlockingQueue<ZnodeMap>();
+  private MigrationMode _migrationMode = MigrationMode.Init;
+  /* else */
+  /*
   private BlockingQueue<String> _nodeManageQueue = new LinkedBlockingQueue<String>();
+  */
+  /* ENABLE_MIGRATION end */
+
   private final ConnectionFactory f;
   private Set<MemcachedNode> nodesNeedVersionOp = new HashSet<MemcachedNode>();
 
@@ -202,7 +213,12 @@ public final class MemcachedConnection extends SpyObject {
     getLogger().debug("Done dealing with queue.");
 
     long delay = 0;
+    /* ENABLE_MIGRATION if */
+    if (!_znodeManageQueue.isEmpty()) {
+    /* else */
+    /*
     if (!_nodeManageQueue.isEmpty()) {
+    */
       delay = 1;
     } else if (!reconnectQueue.isEmpty()) {
       long now = System.currentTimeMillis();
@@ -254,8 +270,14 @@ public final class MemcachedConnection extends SpyObject {
       }
     }
 
+    /* ENABLE_MIGRATION if */
+    handleZnodeManageQueue();
+    /* else */
+    /*
     // Deal with the memcached server group that's been added by CacheManager.
     handleNodeManageQueue();
+    */
+    /* ENABLE_MIGRATION end */
 
     if (!shutDown && !reconnectQueue.isEmpty()) {
       attemptReconnects();
@@ -533,6 +555,48 @@ public final class MemcachedConnection extends SpyObject {
   }
 
   // Called by CacheManger to add the memcached server group.
+  /* ENABLE_MIGRATION if */
+  public void putZnodeQueue(ZnodeType ztype, Object arg) {
+    _znodeManageQueue.offer(new ZnodeMap(ztype, arg));
+  }
+
+  public void handleZnodeManageQueue() throws IOException {
+    if (_znodeManageQueue.isEmpty()) {
+      return;
+    }
+
+    ZnodeMap znodeMap = _znodeManageQueue.poll();
+    ZnodeType ztype = znodeMap.getZtype();
+    Object arg = znodeMap.getArgument();
+
+    if (ztype == ZnodeType.CacheList) {
+      /* handle node list */
+
+      // Get addresses from the queue
+      String addrs = (String) arg;
+
+      // Update the memcached server group.
+      if (arcusReplEnabled) {
+        updateConnections(ArcusReplNodeAddress.getAddresses(addrs));
+        return;
+      }
+      updateConnections(AddrUtil.getAddresses(addrs));
+    } else if (ztype == ZnodeType.AlterList) {
+      /* TODO::ENABLE_MIGRATION next commit */
+    } else if (ztype == ZnodeType.Migrations) {
+      /* TODO::ENABLE_MIGRATION next commit */
+    } else if (ztype == ZnodeType.MigrationVersion) {
+      /* TODO::ENABLE_MIGRATION next commit */
+    } else {
+      assert ztype == ZnodeType.MigrationInit;
+      /* TODO::ENABLE_MIGRATION next commit */
+    }
+  }
+  /* ENABLE_MIGRATION end */
+
+  /* ENABLE_MIGRATION if */
+  /* else */
+  /* TODO::ENABLE_MIGRATION remove not used code by migration
   public void putMemcachedQueue(String addrs) {
     _nodeManageQueue.offer(addrs);
     selector.wakeup();
@@ -545,14 +609,19 @@ public final class MemcachedConnection extends SpyObject {
 
       // Update the memcached server group.
       /* ENABLE_REPLICATION if */
+  /*
       if (arcusReplEnabled) {
         updateReplConnections(ArcusReplNodeAddress.getAddresses(addrs));
         return;
       }
+   */
       /* ENABLE_REPLICATION end */
+  /*
       updateConnections(AddrUtil.getAddresses(addrs));
     }
   }
+  */
+  /* ENABLE_MIGRATION end */
 
   // Handle any requests that have been made against the client.
   private void handleInputQueue() {
